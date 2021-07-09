@@ -67,6 +67,7 @@
 #include "iwdg.h"
 #include "bh1750.h"
 #include "tfsensor.h"
+#include "mlx90614.h"
 #endif
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -75,6 +76,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 bool bh1750flags=0;
+bool mlx90614flags=0;
 uint8_t mode2_flag=0;
 static __IO uint16_t AD_code1=0;
 __IO uint16_t AD_code2=0;
@@ -82,7 +84,11 @@ __IO uint16_t AD_code3=0;
 
 #ifdef USE_SHT
 uint8_t flags=0;
+float object_temp;
+float ambient_temp;
+MLX90614_STATUS mlx_status;
 #endif
+
 
 //static GPIO_InitTypeDef  GPIO_InitStruct;
 extern uint16_t batteryLevel_mV;
@@ -92,6 +98,7 @@ extern float sht31_tem,sht31_hum;
 extern I2C_HandleTypeDef I2cHandle1;
 extern I2C_HandleTypeDef I2cHandle2;
 extern I2C_HandleTypeDef I2cHandle3;
+extern I2C_HandleTypeDef I2cHandle4;
 tfsensor_reading_t reading_t;
 #endif
 
@@ -162,6 +169,18 @@ void BSP_sensor_Read( sensor_t *sensor_data)
 			I2C_IoInit();
 			sensor_data->illuminance=bh1750_read();
 			I2C_DoInit();					
+		}
+		else if(flags==4)
+		{		
+			mlx90614flags=1;
+			HAL_I2C_MspInit(&I2cHandle4);
+			mlx_status = MLX90614_ReadObjectTemperature(&object_temp);
+			mlx_status = MLX90614_ReadAmbientTemperature(&ambient_temp);
+			if(mlx_status==MLX90614_OK) {
+				sensor_data->temp_object=object_temp;
+				sensor_data->temp_ambient=ambient_temp;
+			}
+								
 		}		
 		#endif
 		}
@@ -337,6 +356,21 @@ void  BSP_sensor_Init( void  )
 		 {
 			flags=3;
 			PRINTF("  Use Sensor is BH1750\n\r");			 
+		 }
+	 }
+	 
+	 if(flags==0)
+	 {
+		 float ir_temp;
+		 MLX90614_STATUS status;
+		 HAL_I2C_MspDeInit(&I2cHandle3);
+		 BSP_MLX90614_Init();
+		 status = MLX90614_ReadObjectTemperature(&ir_temp);
+		 
+		 if(status==MLX90614_OK)
+		 {
+			flags=4;
+			PRINTF("  Use Sensor is MLX90614\n\r");			 
 		 }
 	 }
 	 

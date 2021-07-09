@@ -128,6 +128,7 @@ uint16_t REJOIN_TX_DUTYCYCLE=20;//min
 
 void send_exti(void);
 extern bool bh1750flags;
+extern bool mlx90614flags;
 extern uint8_t mode;
 extern uint8_t mode2_flag;
 extern __IO uint16_t AD_code2;
@@ -464,6 +465,13 @@ static void Send( void )
 			AppData.Buff[i++] = 0x00;   
 			AppData.Buff[i++] = 0x00;				
 		}	
+		else if(mlx90614flags==1)
+		{
+			AppData.Buff[i++] =(int)(sensor_data.temp_object*10)>>8;      
+			AppData.Buff[i++] =(int)(sensor_data.temp_object*10);
+			AppData.Buff[i++] =(int)(sensor_data.temp_ambient*10)>>8;  
+			AppData.Buff[i++] =(int)(sensor_data.temp_ambient*10);  			
+		}
 		else
 		{
 			AppData.Buff[i++] =(int)(sensor_data.temp_sht*10)>>8;      
@@ -472,6 +480,7 @@ static void Send( void )
 			AppData.Buff[i++] =(int)(sensor_data.hum_sht*10);
 		}
 		#endif
+		
 	}
 	
 	else if(mode==2)
@@ -538,7 +547,14 @@ static void Send( void )
 			AppData.Buff[i++] =(int)(sensor_data.illuminance);
 			AppData.Buff[i++] = 0x00;   
 			AppData.Buff[i++] = 0x00;				
-		}	
+		}
+		else if(mlx90614flags==1)
+		{
+			AppData.Buff[i++] =(int)(sensor_data.temp_object*10)>>8;      
+			AppData.Buff[i++] =(int)(sensor_data.temp_object*10);
+			AppData.Buff[i++] =(int)(sensor_data.temp_ambient*10)>>8;  
+			AppData.Buff[i++] =(int)(sensor_data.temp_ambient*10);  			
+		}
 		else
 		{
 			AppData.Buff[i++] =(int)(sensor_data.temp_sht*10)>>8;      
@@ -547,6 +563,7 @@ static void Send( void )
 			AppData.Buff[i++] =(int)(sensor_data.hum_sht*10);
 			}
 		#endif
+			
 	
 		AppData.Buff[i++] =(int)(batteryLevel_mV/100);	
 	}

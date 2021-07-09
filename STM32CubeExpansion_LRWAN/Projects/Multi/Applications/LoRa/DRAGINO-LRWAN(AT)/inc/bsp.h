@@ -88,6 +88,10 @@ typedef struct{
 	
 	float hum_sht;
 	
+	float temp_object;
+	
+	float temp_ambient;
+	
 	float illuminance;	
 	
   int distance_mm;
